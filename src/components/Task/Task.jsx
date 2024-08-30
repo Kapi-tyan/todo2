@@ -1,83 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import './Task.css';
 import { formatDistanceToNow } from 'date-fns';
 
-function Task({ id, deletedTask, doneTask, label, done, created, updateTaskText }) {
-  const [edit, setEdit] = useState(false);
-  const [editValue, setEditValue] = useState(label);
-  const [date, setDate] = useState(formatDistanceToNow(created, { addSuffix: true, includeSeconds: true }));
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDate(formatDistanceToNow(created));
+class Task extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      edit: false,
+      editValue: props.label,
+      date: formatDistanceToNow(props.created, { addSuffix: true, includeSeconds: true }),
+    };
+  }
+
+  taskCompleted() {
+    this.interval = setInterval(() => {
+      this.setState({
+        date: formatDistanceToNow(this.props.created),
+      });
     }, 1000);
-    return () => clearInterval(interval);
-  }, [created]);
+  }
 
-  const editedTask = () => {
-    setEdit(true);
+  taskDeleted() {
+    clearInterval(this.interval);
+  }
+
+  editedTask = () => {
+    this.setState({ edit: true });
   };
 
-  const handleEditChange = (x) => {
-    setEditValue(x.target.value);
+  handleEditChange = (event) => {
+    this.setState({ editValue: event.target.value });
   };
-  const handleEditSubmit = (x) => {
-    if (x.key === 'Enter') {
-      setEdit(false);
-      updateTaskText(editValue);
+
+  handleEditSubmit = (event) => {
+    if (event.key === 'Enter') {
+      this.setState({ edit: false });
+      this.props.updateTaskText(this.state.editValue);
     }
   };
 
-  let classNames = '';
-  if (done) {
-    classNames += ' completed';
-  }
-  if (edit) {
-    classNames += ' editing';
-  }
+  render() {
+    const { id, done, deletedTask, doneTask } = this.props;
+    const { edit, editValue, date } = this.state;
+    const taskClassNames = classNames({
+      completed: done,
+      editing: edit,
+    });
 
-  return (
-    <li className={classNames}>
-      {edit ? (
-        <input
-          type="text"
-          className="edit"
-          value={editValue}
-          onChange={handleEditChange}
-          onKeyDown={handleEditSubmit}
-        />
-      ) : (
-        <div>
+    return (
+      <li className={taskClassNames}>
+        {edit ? (
+          <input
+            type="text"
+            className="edit"
+            value={editValue}
+            onChange={this.handleEditChange}
+            onKeyDown={this.handleEditSubmit}
+          />
+        ) : (
           <div>
-            <input
-              className="toggle"
-              type="checkbox"
-              id={`task-${label}`}
-              checked={done}
-              onChange={() => doneTask(id)}
-            />
-            <label htmlFor={`task-${label}`}>
-              <span className="description">{editValue}</span>
-              <span className="created">created {date}</span>
-            </label>
+            <div>
+              <input
+                className="toggle"
+                type="checkbox"
+                id={`task-${editValue}`}
+                checked={done}
+                onChange={() => doneTask(id)}
+              />
+              <label htmlFor={`task-${editValue}`}>
+                <span className="description">{editValue}</span>
+                <span className="created">created {date} </span>
+              </label>
+            </div>
+            <div>
+              <button className="icon icon-edit" onClick={this.editedTask}></button>
+              <button className="icon icon-destroy" onClick={deletedTask}></button>
+            </div>
           </div>
-          <div>
-            <button className="icon icon-edit" onClick={editedTask}></button>
-            <button className="icon icon-destroy" onClick={deletedTask}></button>
-          </div>
-        </div>
-      )}
-    </li>
-  );
+        )}
+      </li>
+    );
+  }
 }
 
 Task.propTypes = {
-  todos: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    done: PropTypes.bool.isRequired,
-    label: PropTypes.string.isRequired,
-    created: PropTypes.instanceOf(Date),
-  }),
+  done: PropTypes.bool.isRequired,
+  label: PropTypes.string.isRequired,
+  created: PropTypes.instanceOf(Date).isRequired,
   doneTask: PropTypes.func.isRequired,
   deletedTask: PropTypes.func.isRequired,
   updateTaskText: PropTypes.func.isRequired,

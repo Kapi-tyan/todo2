@@ -1,37 +1,50 @@
-import React, { useState } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './NewTaskForm.css';
 
-const NewTaskForm = ({ addedTask }) => {
-  const [valueForm, setValueForm] = useState('');
+class NewTaskForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      valueForm: '',
+    };
+  }
 
-  const handleChange = (evt) => {
-    setValueForm(evt.target.value);
+  handleChange = (evt) => {
+    this.setState({ valueForm: evt.target.value });
   };
 
-  const handleSubmit = (evt) => {
+  handleSubmit = (evt) => {
     evt.preventDefault();
+    const { valueForm } = this.state;
+    const { addedTask } = this.props;
     if (valueForm.trim() !== '') {
       addedTask(valueForm);
-      setValueForm('');
+      this.setState({ valueForm: '' });
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        className="new-todo"
-        placeholder="What needs to be done?"
-        name="valueForm"
-        value={valueForm}
-        onChange={handleChange}
-        autoFocus
-        required
-      />
-    </form>
-  );
-};
+  render() {
+    const { valueForm } = this.state;
+
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <input
+          className="new-todo"
+          placeholder="What needs to be done?"
+          name="valueForm"
+          value={valueForm}
+          onChange={this.handleChange}
+          autoFocus
+          required
+        />
+      </form>
+    );
+  }
+}
+
 NewTaskForm.propTypes = {
   addedTask: PropTypes.func.isRequired,
 };
+
 export default NewTaskForm;
