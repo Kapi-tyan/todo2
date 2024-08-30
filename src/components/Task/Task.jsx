@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './Task.css';
 import { formatDistanceToNow } from 'date-fns';
 
-function Task({ deletedTask, doneTask, label, done, created }) {
+function Task({ id, deletedTask, doneTask, label, done, created, updateTaskText }) {
   const [edit, setEdit] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const [date, setDate] = useState(formatDistanceToNow(created, { addSuffix: true, includeSeconds: true }));
@@ -24,6 +24,7 @@ function Task({ deletedTask, doneTask, label, done, created }) {
   const handleEditSubmit = (x) => {
     if (x.key === 'Enter') {
       setEdit(false);
+      updateTaskText(editValue);
     }
   };
 
@@ -31,12 +32,12 @@ function Task({ deletedTask, doneTask, label, done, created }) {
   if (done) {
     classNames += ' completed';
   }
-  if (setEdit) {
+  if (edit) {
     classNames += ' editing';
   }
 
   return (
-    <li className={classNames} onClick={doneTask}>
+    <li className={classNames}>
       {edit ? (
         <input
           type="text"
@@ -48,8 +49,14 @@ function Task({ deletedTask, doneTask, label, done, created }) {
       ) : (
         <div>
           <div>
-            <input className="toggle" type="checkbox" checked={done} onChange={doneTask} onClick={doneTask} />
-            <label>
+            <input
+              className="toggle"
+              type="checkbox"
+              id={`task-${label}`}
+              checked={done}
+              onChange={() => doneTask(id)}
+            />
+            <label htmlFor={`task-${label}`}>
               <span className="description">{editValue}</span>
               <span className="created">created {date}</span>
             </label>
@@ -71,6 +78,7 @@ Task.propTypes = {
   }),
   doneTask: PropTypes.func.isRequired,
   deletedTask: PropTypes.func.isRequired,
+  updateTaskText: PropTypes.func.isRequired,
 };
 
 export default Task;

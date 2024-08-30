@@ -4,12 +4,20 @@ import PropTypes from 'prop-types';
 import Task from '../Task/Task';
 import './TaskList.css';
 
-function TaskList({ todos, deletedTask, doneTask }) {
+function TaskList({ todos, deletedTask, doneTask, updateTaskText }) {
   return (
     <ul className="todo-list">
       {todos.map((item) => {
         const { id, ...itemProps } = item;
-        return <Task {...itemProps} key={id} deletedTask={() => deletedTask(id)} doneTask={() => doneTask(id)} />;
+        return (
+          <Task
+            {...itemProps}
+            key={id}
+            deletedTask={() => deletedTask(id)}
+            doneTask={() => doneTask(id)}
+            updateTaskText={(text) => updateTaskText(id, text)}
+          />
+        );
       })}
     </ul>
   );
@@ -23,5 +31,6 @@ TaskList.propTypes = {
   ),
   deletedTask: PropTypes.func.isRequired,
   doneTask: PropTypes.func.isRequired,
+  updateTaskText: PropTypes.func.isRequired,
 };
 export default TaskList;
