@@ -15,6 +15,7 @@ const Footer = ({ toDo, deletedAllTask, onFilterChange, filter }) => {
   );
 };
 Footer.propTypes = {
+  filter: PropTypes.string.isRequired,
   deletedAllTask: PropTypes.func.isRequired,
   onFilterChange: PropTypes.func.isRequired,
   toDo: PropTypes.number.isRequired,

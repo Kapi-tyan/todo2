@@ -75,6 +75,8 @@ Task.propTypes = {
   todos: PropTypes.shape({
     id: PropTypes.number.isRequired,
     done: PropTypes.bool.isRequired,
+    label: PropTypes.string.isRequired,
+    created: PropTypes.instanceOf(Date),
   }),
   doneTask: PropTypes.func.isRequired,
   deletedTask: PropTypes.func.isRequired,
