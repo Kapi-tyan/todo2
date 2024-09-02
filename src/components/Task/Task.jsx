@@ -65,11 +65,11 @@ class Task extends Component {
               <input
                 className="toggle"
                 type="checkbox"
-                id={`task-${editValue}`}
+                id={`task-${id}`}
                 checked={done}
                 onChange={() => doneTask(id)}
               />
-              <label htmlFor={`task-${editValue}`}>
+              <label htmlFor={`task-${id}`}>
                 <span className="description">{editValue}</span>
                 <span className="created">created {date} </span>
               </label>
