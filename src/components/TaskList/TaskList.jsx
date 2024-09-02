@@ -13,6 +13,7 @@ function TaskList({ todos, deletedTask, doneTask, updateTaskText }) {
           <Task
             {...itemProps}
             key={id}
+            id={id}
             deletedTask={() => deletedTask(id)}
             doneTask={() => doneTask(id)}
             updateTaskText={(text) => updateTaskText(id, text)}
