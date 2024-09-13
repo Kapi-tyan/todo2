@@ -7,25 +7,37 @@ class NewTaskForm extends Component {
     super(props);
     this.state = {
       valueForm: '',
+      minutes: 0,
+      seconds: 0,
     };
+    this.minutesInput = React.createRef();
+    this.secondsInput = React.createRef();
   }
 
   handleChange = (evt) => {
     this.setState({ valueForm: evt.target.value });
   };
 
+  handleMinuteChange = (e) => {
+    this.setState({ minutes: parseInt(e.target.value, 10) || 0 });
+  };
+
+  handleSecondChange = (e) => {
+    this.setState({ seconds: parseInt(e.target.value, 10) || 0 });
+  };
+
   handleSubmit = (evt) => {
     evt.preventDefault();
-    const { valueForm } = this.state;
+    const { valueForm, minutes, seconds } = this.state;
     const { addedTask } = this.props;
     if (valueForm.trim() !== '') {
-      addedTask(valueForm);
-      this.setState({ valueForm: '' });
+      addedTask(valueForm, minutes, seconds);
+      this.setState({ valueForm: '', minutes: 0, seconds: 0 });
     }
   };
 
   render() {
-    const { valueForm } = this.state;
+    const { valueForm, minutes, seconds } = this.state;
 
     return (
       <form onSubmit={this.handleSubmit}>
@@ -38,6 +50,23 @@ class NewTaskForm extends Component {
           autoFocus
           required
         />
+        <input
+          className="new-todo-form__timer"
+          ref={this.minutesInput}
+          type="number"
+          placeholder="Min"
+          value={minutes}
+          onChange={this.handleMinuteChange}
+        />
+        <input
+          className="new-todo-form__timer"
+          ref={this.secondsInput}
+          type="number"
+          placeholder="Sec"
+          value={seconds}
+          onChange={this.handleSecondChange}
+        />
+        <button type="submit"></button>
       </form>
     );
   }

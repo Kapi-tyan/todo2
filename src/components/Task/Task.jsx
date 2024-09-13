@@ -42,7 +42,7 @@ class Task extends Component {
   };
 
   render() {
-    const { id, done, deletedTask, doneTask } = this.props;
+    const { id, done, deletedTask, doneTask, onClickStart, onClickStop, minutes, seconds } = this.props;
     const { edit, editValue, date } = this.state;
     const taskClassNames = classNames({
       completed: done,
@@ -65,12 +65,17 @@ class Task extends Component {
               <input
                 className="toggle"
                 type="checkbox"
-                id={`task-${editValue}`}
+                id={`task-${id}`}
                 checked={done}
                 onChange={() => doneTask(id)}
               />
-              <label htmlFor={`task-${editValue}`}>
+              <label htmlFor={`task-${id}`}>
                 <span className="description">{editValue}</span>
+                <div className="description__time">
+                  <button className="icon icon-play" onClick={() => onClickStart(id)}></button>
+                  <button className="icon icon-pause" onClick={() => onClickStop(id)}></button>
+                  {minutes} : {seconds}
+                </div>
                 <span className="created">created {date} </span>
               </label>
             </div>
