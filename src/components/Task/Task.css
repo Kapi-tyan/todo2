@@ -131,3 +131,24 @@
 .todo-list li.editing:last-child {
 	margin-bottom: -1px;
 }
+.todo-list li .icon-pause,
+.todo-list li .icon-play {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	transform: scale(60%);
+}
+
+.icon-pause:after {
+	content: '⏸';
+	margin-left: 100px;
+}
+
+.icon-play:after {
+	content: '▶';
+	margin-left: 65px;	
+}
+
+.description__time{
+	font-size: 15px;
+}

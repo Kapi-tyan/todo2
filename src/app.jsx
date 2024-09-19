@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React, { Component } from 'react';
+import React, { useState, useRef } from 'react';
 
 import NewTaskForm from './components/NewTaskForm/NewTaskForm';
 import TaskList from './components/TaskList/TaskList';
@@ -7,56 +7,69 @@ import Footer from './components/Footer/Footer.jsx';
 
 import './index.css';
 
-class App extends Component {
-  maxId = 1;
+const App = () => {
+  const [filter, setFilter] = useState('all');
+  const [activeTimerId, setActiveTimerId] = useState(null);
+  const [timers, setTimers] = useState({});
+  const [isRunning, setIsRunning] = useState(false);
+  
+  const minutesInput = useRef(null);
+  const secondsInput = useRef(null);
+  const maxId = useRef(1);
 
-  state = {
-    todoData: [this.createTask('eat'), this.createTask('make'), this.createTask('learn')],
-    filter: 'all',
-  };
-
-  createTask(label) {
+  const createTask = (label, minutes = 0, seconds = 0) => {
     return {
-      label: label,
-      id: this.maxId++,
+      label,
+      id: maxId.current++,
+      created: new Date(), 
       done: false,
-      created: new Date(),
+      minutes,
+      seconds,
     };
-  }
-
-  delTask = (id) => {
-    this.setState(({ todoData }) => {
-      const idDel = todoData.findIndex((elem) => elem.id === id);
-      const newTodoData = [...todoData.slice(0, idDel), ...todoData.slice(idDel + 1)];
-      return {
-        todoData: newTodoData,
-      };
+  };
+  const [todoData, setTodoData] = useState([
+    createTask('eat'),
+    createTask('make'),
+    createTask('learn'),
+  ]);
+  const delTask = (id) => {
+    setTodoData((prevTodoData) =>{
+      const idDel = prevTodoData.findIndex((elem) => elem.id === id);
+      const newTodoData = [...prevTodoData.slice(0, idDel), ...prevTodoData.slice(idDel + 1)];
+      return newTodoData;
+    });
+    setTimers((prevTimers) => {
+      const newTimers = {...prevTimers};
+      clearInterval(prevTimers[id]);
+      delete newTimers[id];
+      return newTimers;
     });
   };
 
-  deletedAllTask = () => {
-    this.setState(({ todoData }) => {
-      const activeTasks = todoData.filter(task => !task.done);
-      return {
-        todoData: activeTasks,
-      };
+  const deletedAllTask = () => {
+    setTodoData((prevTodoData) =>{
+      const activeTasks = prevTodoData.filter((task)=>!task.done);
+      setTimers((prevTimers) =>{
+        Object.keys(prevTimers).forEach((id) => clearInterval(prevTimers[id]));
+        return {};
+      });
+      setActiveTimerId(null);
+      setIsRunning(false);
+      return activeTasks;
     });
   };
 
-  addedTask = (text) => {
-    const newTask = this.createTask(text);
-    this.setState(({ todoData }) => {
-      const newTodoData = [...todoData, newTask];
-      return {
-        todoData: newTodoData,
-      };
+  const addedTask = (text, minutes, seconds) => {
+    const newTask = createTask(text, minutes, seconds);
+    setTodoData((prevTodoData)=>{
+      return [...prevTodoData, newTask];
     });
   };
 
-  doneTask = (id) => {
-    this.setState(({ todoData }) => {
-      const idDone = todoData.findIndex((elem) => elem.id === id);
-      const oldTask = todoData[idDone];
+  const doneTask = (id) =>{
+    setTodoData((prevTodoData) =>{
+      const idDone = prevTodoData.findIndex((elem) => elem.id === id);
+      const oldTask = prevTodoData[idDone];
       if (!oldTask) {
         return;
       }
@@ -64,15 +77,13 @@ class App extends Component {
         ...oldTask,
         done: !oldTask.done,
       };
-
-      const newTodoData = [...todoData.slice(0, idDone), newTask, ...todoData.slice(idDone + 1)];
-      return {
-        todoData: newTodoData,
-      };
+      const newTodoData = [...prevTodoData.slice(0, idDone), newTask, ...prevTodoData.slice(idDone + 1)];
+      return newTodoData;
     });
   };
 
-  filterTask = (items, filter) => {
+
+  const filterTask = (items, filter) => {
     switch (filter) {
     case 'all':
       return items;
@@ -84,46 +95,102 @@ class App extends Component {
       return items;
     }
   };
-
-  updateTaskText = (id, text) => {
-    this.setState(({ todoData }) => {
-      const idTask = todoData.findIndex((elem) => elem.id === id);
-      const oldTask = todoData[idTask];
-      const newTask = { ...oldTask, label: text };
-      const newTodoData = [...todoData.slice(0, idTask), newTask, ...todoData.slice(idTask + 1)];
-      return {
-        todoData: newTodoData,
-      };
+  const updateTaskText = (id, text) => {
+    setTodoData((prevTodoData) => {
+      const idTask = prevTodoData.findIndex((elem)=> elem.id === id);
+      const oldTask = prevTodoData[idTask];
+      const newTask = {...oldTask, label: text};
+      const newTodoData = [...prevTodoData.slice(0, idTask), newTask, ...prevTodoData.slice(idTask + 1)];
+      return newTodoData;
     });
   };
 
-  onFilterChange = (filter) => {
-    this.setState({ filter });
+  const onFilterChange = (filter) => {
+    setFilter( filter );
+  };
+ 
+  const startTimer = (id) => {
+    if (isRunning) return;
+    const timerId = setInterval(() => {
+      countDown(id);
+    }, 1000);
+    setTimers((prevTimers) => ({
+      ...prevTimers,
+      [id]: timerId,
+    }));
+    setActiveTimerId(id);
+    setIsRunning(true);
   };
 
-  render() {
-    const { todoData, filter } = this.state;
-    const viewTask = this.filterTask(todoData, filter);
-    const unfilled = this.state.todoData.filter((task) => !task.done).length;
-    return (
-      <div>
-        <section className="todoapp">
-          <header className="header">
-            <h1>Todos</h1>
-            <NewTaskForm addedTask={this.addedTask} />
-          </header>
-          <section className="main">
-            <TaskList todos={viewTask} deletedTask={this.delTask} doneTask={this.doneTask} updateTaskText={this.updateTaskText} />
-            <Footer
-              toDo={unfilled}
-              deletedAllTask={this.deletedAllTask}
-              onFilterChange={this.onFilterChange}
-              filter={filter}
-            />
-          </section>
+  
+  const countDown = (id) => {
+    setTodoData((prevTodoData) => {
+      const idx = prevTodoData.findIndex((task) => task.id === id);
+      const task = prevTodoData[idx];
+      if (task.seconds === 0 && task.minutes === 0) {
+        clearInterval(timers[id]);
+        setIsRunning(false);
+        setActiveTimerId(null);
+        return prevTodoData;
+      }
+      if (task.done) {
+        clearInterval(timers[id]);
+        setIsRunning(false);
+        setActiveTimerId(null);
+        return prevTodoData;
+      }
+
+      const newSeconds = task.seconds === 0 ? 59 : task.seconds - 1;
+      const newMinutes = task.seconds === 0 ? task.minutes - 1 : task.minutes;
+
+      const updatedTask = {
+        ...task,
+        minutes: newMinutes,
+        seconds: newSeconds,
+      };
+
+      const newTodoData = [...prevTodoData.slice(0, idx), updatedTask, ...prevTodoData.slice(idx + 1)];
+
+      return newTodoData;
+    });
+  };
+  const stopTimer = () => {
+    if (activeTimerId !== null) {
+      clearInterval(timers[activeTimerId]);
+      setIsRunning(false);
+      setActiveTimerId(null);
+    }
+  };
+
+  const viewTask = filterTask(todoData, filter);
+  const unfilled = todoData.filter((task) => !task.done).length;
+  return (
+    <div>
+      <section className="todoapp">
+        <header className="header">
+          <h1>Todos</h1>
+          <NewTaskForm addedTask={addedTask} />
+        </header>
+        <section className="main">
+          <TaskList
+            todos={viewTask}
+            deletedTask={delTask}
+            doneTask={doneTask}
+            updateTaskText={updateTaskText}
+            onClickStart={startTimer}
+            onClickStop={stopTimer}
+            minutesRef={minutesInput}
+            secondsRef={secondsInput}
+          />
+          <Footer
+            toDo={unfilled}
+            deletedAllTask={deletedAllTask}
+            onFilterChange={onFilterChange}
+            filter={filter}
+          />
         </section>
-      </div>
-    );
-  }
-}
+      </section>
+    </div>
+  );
+};
 export default App;
